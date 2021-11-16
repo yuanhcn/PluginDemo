@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">plugin</string>
+    <string name="say_hello">Say hello!</string>
 </resources>

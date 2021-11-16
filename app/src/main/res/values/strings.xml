@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">PluginDemo</string>
+
+    <string name="say_hello">No plug Say hello!</string>
 </resources>

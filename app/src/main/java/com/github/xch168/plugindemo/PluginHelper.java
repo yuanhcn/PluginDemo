@@ -36,15 +36,20 @@ public class PluginHelper {
 
     private static void loadPluginClass(Context context, ClassLoader hostClassLoader) throws Exception {
         // Step1. 获取到插件apk，通常都是从网络上下载，这里为了演示，直接将插件apk push到手机
-        File pluginFile = context.getExternalFilesDir("plugin");
-        Log.i(TAG, "pluginPath:" + pluginFile.getAbsolutePath());
-        if (pluginFile == null || !pluginFile.exists() || pluginFile.listFiles().length == 0) {
+        File pluginRootFile = context.getExternalFilesDir("plugin");
+        pluginRootFile.mkdirs();
+        Log.i(TAG, "pluginPath:" + pluginRootFile.getAbsolutePath());
+        if (pluginRootFile == null || !pluginRootFile.exists() || pluginRootFile.listFiles().length == 0) {
             Toast.makeText(context, "插件文件不存在", Toast.LENGTH_SHORT).show();
             return;
         }
-        pluginFile = pluginFile.listFiles()[0];
+        File pluginFile = new File(pluginRootFile, "plug-debug.apk");
+        Log.i(TAG, "pluginPath:" + pluginFile.getAbsolutePath());
+
+        File optimizedDirectoryFile = new File(pluginRootFile, "plug" + System.currentTimeMillis());
+        optimizedDirectoryFile.mkdirs();
         // Step2. 创建插件的DexClassLoader
-        DexClassLoader pluginClassLoader = new DexClassLoader(pluginFile.getAbsolutePath(), null, null, hostClassLoader);
+        DexClassLoader pluginClassLoader = new DexClassLoader(pluginFile.getAbsolutePath(), optimizedDirectoryFile.getAbsolutePath(), null, hostClassLoader);
         // Step3. 通过反射获取到pluginClassLoader中的pathList字段
         Object pluginDexPathList = ReflectUtil.getField(BaseDexClassLoader.class, pluginClassLoader, FIELD_PATH_LIST);
         // Step4. 通过反射获取到DexPathList的dexElements字段
@@ -77,7 +82,11 @@ public class PluginHelper {
         Class<AssetManager> clazz = AssetManager.class;
         AssetManager assetManager = clazz.newInstance();
         Method method = clazz.getMethod("addAssetPath", String.class);
-        method.invoke(assetManager, context.getExternalFilesDir("plugin").listFiles()[0].getAbsolutePath());
+
+        File pluginRootFile = context.getExternalFilesDir("plugin");
+        File pluginFile = new File(pluginRootFile, "plug-debug.apk");
+
+        method.invoke(assetManager, pluginFile.getAbsolutePath());
         sPluginResources = new Resources(assetManager, context.getResources().getDisplayMetrics(), context.getResources().getConfiguration());
     }
 
